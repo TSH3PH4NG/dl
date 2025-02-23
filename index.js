@@ -53,8 +53,9 @@ async function api(videoId) {
   try {
     const res = await axios.get(endpoint, { headers });
     const data = res.data;
-    let bb = await getBuffer(data.link);
+      
     if (data.status === "ok") {
+      let bb = await getBuffer(data.link);
       return { title: data.title, link: data.link , buffer: bb };
     } else if (data.status === "processing") {
       return api(videoId);
