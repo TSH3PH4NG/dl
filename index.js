@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const app = express();
-const PORT = 8000 || 3000;
+const PORT = 8000
 
 
 async function getBuffer(url, options) {
