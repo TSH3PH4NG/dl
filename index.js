@@ -56,7 +56,6 @@ async function api(videoId) {
       
     if (data.status === "ok") {
       let bb = await getBuffer(data.link);
-      bb = await Buffer.from(bb);
         
       return { title: data.title, link: data.link , buffer: bb };
     } else if (data.status === "processing") {
