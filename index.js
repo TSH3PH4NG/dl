@@ -34,7 +34,7 @@ app.get('/download', async (req, res) => {
         videoStream.data.pipe(res);
         
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: error });
     }
 });
 
