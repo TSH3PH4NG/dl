@@ -24,10 +24,14 @@ app.get('/download', async (req, res) => {
     try {
         const data = await savetube.download(url,videoQuality);
         const videoStream = await axios({
-            url: data.result.download,
-            method: 'GET',
-            responseType: 'stream'
-        });
+        url: data.result.download,
+        method: 'GET',
+        responseType: 'stream',
+        headers: {
+       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+   });
+
 
 
         res.setHeader('Content-Type', options ? 'audio/mpeg' : 'video/mp4');
