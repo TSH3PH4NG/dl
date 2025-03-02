@@ -10,28 +10,34 @@ app.get('/', (req, res) => {
 });
 
 app.get('/download', async (req, res) => {
-    const { url, quality, type } = req.query;
+    const { url, quality } = req.query;
     if (!url) return res.status(400).json({ error: "Missing URL parameter" });
 
     const videoQuality = quality || "720";
 
     try {
-        // Get the video URL using savetube
+        // Fetch video URL
         const data = await savetube.download(url, videoQuality);
-        const videoUrl = data.result.download;
+        console.log("savetube response:", data); // Debug log
 
-        // Launch Puppeteer and open the video URL in a browser
-        const browser = await puppeteer.launch({ headless: false }); // Set headless: false to show the browser
+        if (!data || !data.result || !data.result.download) {
+            return res.status(500).json({ error: "Invalid response from savetube" });
+        }
+
+        const videoUrl = data.result.download;
+        console.log("Extracted video URL:", videoUrl); // Debug log
+
+        // Open in Puppeteer
+        const browser = await puppeteer.launch({ headless: false });
         const page = await browser.newPage();
         await page.goto(videoUrl, { waitUntil: 'networkidle2' });
 
-        // Redirect user to the video URL
+        // Redirect user
         res.redirect(videoUrl);
 
-        // Optionally close the browser after a delay (to let the user see the video)
         setTimeout(() => browser.close(), 30000);
     } catch (error) {
-        console.error(error);
+        console.error("Error:", error); // Log full error
         res.status(500).json({ error: "Failed to fetch video URL" });
     }
 });
@@ -39,4 +45,3 @@ app.get('/download', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
-
