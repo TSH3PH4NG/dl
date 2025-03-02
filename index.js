@@ -1,6 +1,9 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
-
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+const http = require('http');
 const app = express();
 const PORT = 80;
 
@@ -17,12 +20,44 @@ app.get('/download', async (req, res) => {
     if (!videoUrl) return res.status(400).json({ error: "Missing video URL" });
 
     const options = type === "audio";
-    
+
     try {
-        // Redirect user to the video URL directly
-        res.redirect(videoUrl);
+        // Download video to temporary file
+        const tmpFilePath = path.join(__dirname, 'temp_video.mp4');
+        const file = fs.createWriteStream(tmpFilePath);
+
+        const protocol = videoUrl.startsWith('https') ? https : http;
+
+        protocol.get(videoUrl, (response) => {
+            response.pipe(file);
+            
+            file.on('finish', () => {
+                file.close();  // Close the file after download is finished
+
+                // Set response headers
+                res.setHeader('Content-Type', options ? 'audio/mpeg' : 'video/mp4');
+                res.setHeader('Content-Disposition', 'attachment; filename="temp_video.mp4"');
+                
+                // Send the temporary video file
+                res.sendFile(tmpFilePath, (err) => {
+                    if (err) {
+                        console.error("Error sending file:", err);
+                        res.status(500).json({ error: "Failed to send video file" });
+                    }
+                    // Clean up the file after it's sent
+                    fs.unlink(tmpFilePath, (err) => {
+                        if (err) {
+                            console.error("Error deleting temp file:", err);
+                        }
+                    });
+                });
+            });
+        }).on('error', (err) => {
+            console.error("Error downloading video:", err);
+            res.status(500).json({ error: "Failed to download video" });
+        });
     } catch (error) {
-        console.error("Error:", error); 
+        console.error("Error:", error);
         res.status(500).json({ error: "Failed to fetch video URL" });
     }
 });
