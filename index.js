@@ -54,7 +54,7 @@ app.get('/download', async (req, res) => {
     await browser.close();
   } catch (error) {
     console.error("Error:", error);
-    res.status(500).json({ error: `Failed error: ${e}` });
+    res.status(500).json({ error: `Failed error: ${error}` });
   }
 });
 
