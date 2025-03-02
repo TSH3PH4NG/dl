@@ -38,7 +38,7 @@ app.get('/download', async (req, res) => {
         setTimeout(() => browser.close(), 30000);
     } catch (error) {
         console.error("Error:", error); // Log full error
-        res.status(500).json({ error: "Failed to fetch video URL" });
+        res.status(500).json({ error: error });
     }
 });
 
