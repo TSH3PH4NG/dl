@@ -109,9 +109,9 @@ const savetube = {
           type: format === 'mp3' ? 'audio' : 'video',
           format,
           thumbnail: decrypted.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
-          download: dl.data.data.downloadUrl,
+          download: `${dl.data.data.downloadUrl}`,
           id,
-          key: decrypted.key,
+          apidl: savetube.api.download,
           duration: decrypted.duration,
           quality: format,
           downloaded: dl.data.data.downloaded || false
