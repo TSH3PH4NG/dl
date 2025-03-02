@@ -1,49 +1,42 @@
 const express = require('express');
-const axios = require('axios');
+const puppeteer = require('puppeteer');
 const { savetube } = require("./resources/functions");
+
 const app = express();
 const PORT = 80;
-
-
-
 
 app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-
 app.get('/download', async (req, res) => {
-    const { url , quality , type } = req.query;
+    const { url, quality, type } = req.query;
     if (!url) return res.status(400).json({ error: "Missing URL parameter" });
 
+    const videoQuality = quality || "720";
 
-    const  options = type === "audio";
-    const videoQuality = quality || "720" ;
-    
-    
     try {
-        const data = await savetube.download(url,videoQuality);
-        return res.send(data);
-        const videoStream = await axios({
-        url: data.result.download,
-        method: 'GET',
-        responseType: 'stream',
-        headers: {
-       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
-   });
+        // Get the video URL using savetube
+        const data = await savetube.download(url, videoQuality);
+        const videoUrl = data.result.download;
 
+        // Launch Puppeteer and open the video URL in a browser
+        const browser = await puppeteer.launch({ headless: false }); // Set headless: false to show the browser
+        const page = await browser.newPage();
+        await page.goto(videoUrl, { waitUntil: 'networkidle2' });
 
+        // Redirect user to the video URL
+        res.redirect(videoUrl);
 
-        res.setHeader('Content-Type', options ? 'audio/mpeg' : 'video/mp4');
-        videoStream.data.pipe(res);
-        
+        // Optionally close the browser after a delay (to let the user see the video)
+        setTimeout(() => browser.close(), 30000);
     } catch (error) {
-        res.status(500).json({ error: error });
+        console.error(error);
+        res.status(500).json({ error: "Failed to fetch video URL" });
     }
 });
-
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
+
