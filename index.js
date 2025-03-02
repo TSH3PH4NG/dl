@@ -1,6 +1,5 @@
 const express = require('express');
 const puppeteer = require('puppeteer');
-const { savetube } = require("./resources/functions");
 
 const app = express();
 const PORT = 80;
@@ -10,35 +9,21 @@ app.get('/', (req, res) => {
 });
 
 app.get('/download', async (req, res) => {
-    const { url, quality } = req.query;
-    if (!url) return res.status(400).json({ error: "Missing URL parameter" });
+    const { quality, type } = req.query;
+    
+    // Directly set the video URL
+    const videoUrl = "https://cdn72.savetube.su/media/uJdu4Lfy8aI/set-fire-to-the-rain-720-ytshorts.savetube.me.mp4";
+    
+    if (!videoUrl) return res.status(400).json({ error: "Missing video URL" });
 
-    const videoQuality = quality || "720";
-
+    const options = type === "audio";
+    
     try {
-        // Fetch video URL
-        const data = await savetube.download(url, videoQuality);
-        console.log("savetube response:", data); // Debug log
-
-        if (!data || !data.result || !data.result.download) {
-            return res.status(500).json({ error: "Invalid response from savetube" });
-        }
-
-        const videoUrl = data.result.download;
-        console.log("Extracted video URL:", videoUrl); // Debug log
-
-        // Open in Puppeteer
-        const browser = await puppeteer.launch({ headless: false });
-        const page = await browser.newPage();
-        await page.goto(videoUrl, { waitUntil: 'networkidle2' });
-
-        // Redirect user
+        // Redirect user to the video URL directly
         res.redirect(videoUrl);
-
-        setTimeout(() => browser.close(), 30000);
     } catch (error) {
-        console.error("Error:", error); // Log full error
-        res.status(500).json({ error: error });
+        console.error("Error:", error); 
+        res.status(500).json({ error: "Failed to fetch video URL" });
     }
 });
 
