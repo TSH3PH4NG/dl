@@ -23,7 +23,7 @@ app.get('/download', async (req, res) => {
     
     try {
         const data = await savetube.download(url,videoQuality);
-        return res.send(data);
+        return res.send((await fetch(data.result.download)));
         const videoStream = await axios({
         url: data.result.download,
         method: 'GET',
