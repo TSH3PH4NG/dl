@@ -1,8 +1,29 @@
+/* © Tshepang 2025*/
 const { translate } = require('@vitalets/google-translate-api');
 
+// Full list of supported language codes
+const supportedLanguages = [
+    'af', 'sq', 'am', 'ar', 'hy', 'az', 'eu', 'be', 'bn', 'bs', 'bg', 'ca', 'ceb', 
+    'zh-CN', 'zh-TW', 'hr', 'cs', 'da', 'nl', 'en', 'eo', 'et', 'tl', 'fi', 'fr', 
+    'gl', 'ka', 'de', 'el', 'gu', 'ht', 'he', 'hi', 'hmn', 'hu', 'is', 'ig', 'id', 
+    'ga', 'it', 'ja', 'jw', 'kn', 'kk', 'km', 'ko', 'ku', 'ky', 'lo', 'la', 'lv', 
+    'lt', 'mk', 'ms', 'ml', 'mr', 'mn', 'my', 'ne', 'no', 'ps', 'fa', 'pl', 'pt', 
+    'pa', 'ro', 'ru', 'sr', 'si', 'sk', 'sl', 'so', 'es', 'su', 'sw', 'sv', 'tg', 
+    'ta', 'te', 'th', 'tr', 'uk', 'ur', 'uz', 'vi', 'cy', 'xh', 'yi', 'yo', 'zu'
+];
+
 async function trt(text, lang) {
-    let language = !lang ? "en" : lang; // Default to "en" (English)
+    // Default to "en" (English) if no lang is provided
+    let language = !lang ? "en" : lang;
     
+    // Check if the language code is valid
+    if (!supportedLanguages.includes(language)) {
+        return {
+            status: 400,
+            error: "Invalid language code",
+        };
+    }
+
     let result;
     try {
         result = await translate(text, {
