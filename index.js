@@ -18,11 +18,11 @@ app.get('/download', async (req, res) => {
 
 
     const  options = type === "audio";
-    const videoQuality = quality || "720" ;
+    
     
     
     try {
-        const data = await savetube.download(url,videoQuality);
+        const data = await savetube.download(url, quality);
         return res.send(data);
         const videoStream = await axios({
         url: data.result.download,
