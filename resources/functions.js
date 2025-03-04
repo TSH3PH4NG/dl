@@ -17,7 +17,7 @@ const savetube = {
     'referer': 'https://yt.savetube.me/',
     'user-agent': 'Postify/1.0.0'
   },
-  formats: ['144', '240', '360', '480', '720', '1080', 'audio'],
+  formats: ['144', '240', '360', '480', '720', '1080'],
   crypto: {
     hexToBuffer: (hexString) => {
       const matches = hexString.match(/.{1,2}/g);
@@ -97,7 +97,7 @@ const savetube = {
       const decrypted = await savetube.crypto.decrypt(result.data.data);
       const dl = await savetube.request(`https://${cdn}${savetube.api.download}`, {
         id,
-        downloadType: !format ? "audio" : "video",
+        downloadType: (format || "audio"),
         quality: format,
         key: decrypted.key
       });
