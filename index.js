@@ -12,7 +12,7 @@ app.get('/', (req, res) => {
     res.send('Hello World');
 });
 
-app.get("translate", async(req,res)=>{
+app.get("/translate", async(req,res)=>{
 	
 	 const { text , lang } = req.query;
      if (!text) return res.status(400).json({ error: "i need a text" });
