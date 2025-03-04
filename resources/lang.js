@@ -10,7 +10,10 @@ let language = !lang ? "english" : lang
          autoCorrect: true
       }).catch(_ => null)
       
-      return result?.text
+      return {
+         status: 200,
+         text: result?.text,
+      };
 }
 
 module.export = { trt };
