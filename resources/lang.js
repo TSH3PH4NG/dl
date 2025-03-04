@@ -20,7 +20,7 @@ async function trt(text, lang) {
     if (!supportedLanguages.includes(language)) {
         return {
             status: 400,
-            error: "Invalid language code",
+            text: `Invalid language code\n choose from: ${supportedLanguages}`,
         };
     }
 
