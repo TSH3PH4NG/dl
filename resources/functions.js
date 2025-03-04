@@ -98,7 +98,7 @@ const savetube = {
       const dl = await savetube.request(`https://${cdn}${savetube.api.download}`, {
         id,
         downloadType: (format || "audio"),
-        quality: format,
+        quality: (format || "audio"),
         key: decrypted.key
       });
       return {
