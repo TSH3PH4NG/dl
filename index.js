@@ -1,7 +1,7 @@
 const express = require('express');
 const axios = require('axios');
 const { savetube } = require("./resources/functions");
-const { translate } = require("./resources/lang");
+const { trt } = require("./resources/lang");
 const app = express();
 const PORT = 80;
 
@@ -18,9 +18,9 @@ app.get("/translate", async(req,res)=>{
      if (!text) return res.status(400).json({ error: "i need a text" });
      if(!lang) lang = "en";
   
-     let trt = await translate(text, lang);
+     let trt_text = await trt(text, lang);
   
-     res.send(trt);
+     res.send(trt_text);
 
 })
 
