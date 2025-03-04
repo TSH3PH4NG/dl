@@ -14,14 +14,11 @@ app.get('/', (req, res) => {
 
 app.get("/translate", async(req,res)=>{
 	
-	 const { text , lang } = req.query;
+     const { text , lang } = req.query;
      if (!text) return res.status(400).json({ error: "i need a text" });
      if(!lang) lang = "en";
-  
      let trt_text = await trt(text, lang);
-  
      res.send(trt_text);
-
 })
 
 
