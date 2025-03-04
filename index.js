@@ -18,7 +18,7 @@ app.get('/download', async (req, res) => {
 
 
     const  options = type === "audio";
-    const videoQuality = quality || "audio" ;
+    const videoQuality = quality || "mp3" ;
     
     
     try {
