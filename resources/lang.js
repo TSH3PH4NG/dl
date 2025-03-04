@@ -1,19 +1,25 @@
-const {
-   translate
-} = require('@vitalets/google-translate-api');
+const { translate } = require('@vitalets/google-translate-api');
 
-async function trt(text,lang){
-let language = !lang ? "english" : lang
+async function trt(text, lang) {
+    let language = !lang ? "en" : lang; // Default to "en" (English)
+    
+    let result;
+    try {
+        result = await translate(text, {
+            to: language,
+            autoCorrect: true,
+        });
+    } catch (error) {
+        return {
+            status: 500,
+            error: "Translation failed",
+        };
+    }
 
-      let result = await translate(text, {
-         to: language,
-         autoCorrect: true
-      }).catch(_ => null)
-      
-      return {
-         status: 200,
-         text: result?.text,
-      };
+    return {
+        status: 200,
+        text: result?.text,
+    };
 }
 
-module.export = { trt };
+module.exports = { trt };
