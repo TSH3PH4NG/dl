@@ -2,7 +2,7 @@ const {
    translate
 } = require('@vitalets/google-translate-api');
 
-async function translate(text,lang){
+async function trt(text,lang){
 let language = !lang ? "english" : lang
 
       let result = await translate(text, {
@@ -13,4 +13,4 @@ let language = !lang ? "english" : lang
       return result?.text
 }
 
-module.export = { translate };
+module.export = { trt };
