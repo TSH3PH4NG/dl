@@ -21,7 +21,7 @@ app.get("/translate", async (req, res) => {
 
     try {
         let trt_text = await trt(text, lang);
-        res.send(trt_txt);
+        res.send(trt_text);
     } catch (error) {
         res.status(500).json({ error: "Translation failed", details: error.message });
     }
