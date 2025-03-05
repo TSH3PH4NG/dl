@@ -40,6 +40,7 @@ app.get('/download', async (req, res) => {
     try {
         const data = await savetube.download(url,videoQuality);
         return res.send(data);
+        /*
         const videoStream = await axios({
         url: data.result.download,
         method: 'GET',
@@ -53,7 +54,7 @@ app.get('/download', async (req, res) => {
 
         res.setHeader('Content-Type', options ? 'audio/mpeg' : 'video/mp4');
         videoStream.data.pipe(res);
-        
+        */
     } catch (error) {
         res.status(500).json({ error: error });
     }
