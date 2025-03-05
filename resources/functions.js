@@ -2,6 +2,17 @@ const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+const COMMON_HEADERS = {
+  'Accept': 'application/json, text/plain, */*',
+  'Accept-Encoding': 'gzip, deflate, br',
+  'Accept-Language': 'en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
+  'Origin': 'https://yt.savetube.me',
+  'Referer': 'https://yt.savetube.me/',
+  'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+  'Sec-Fetch-Dest': 'empty',
+  'Sec-Fetch-Mode': 'cors',
+  'Sec-Fetch-Site': 'cross-site',
+  
 
 const savetube = {
   api: {
@@ -68,16 +79,20 @@ const savetube = {
         url: `${endpoint.startsWith('http') ? '' : savetube.api.base}${endpoint}`,
         data: method === 'post' ? data : undefined,
         params: method === 'get' ? data : undefined,
-        headers: savetube.headers
+        headers: COMMON_HEADERS,
       });
       return { status: true, code: 200, data: response };
     } catch (error) {
       return { status: false, code: error.response?.status || 500, error: error.message };
     }
   },
-  getCDN: async () => {
-    const response = await savetube.request(savetube.api.cdn, {}, 'get');
-    if (!response.status) return response;
+  getCDN: async () => {  
+    const config = {
+    method: 'get',
+    url: 'https://media.savetube.me/api/random-cdn',
+    headers: COMMON_HEADERS,
+  };
+    const response = await axios.get(config);
     return { status: true, code: 200, data: response.data.cdn };
   },
   download: async (link, format) => {
