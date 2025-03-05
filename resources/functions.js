@@ -12,6 +12,7 @@ const COMMON_HEADERS = {
   'Sec-Fetch-Dest': 'empty',
   'Sec-Fetch-Mode': 'cors',
   'Sec-Fetch-Site': 'cross-site',
+  }
   
 
 const savetube = {
