@@ -2,6 +2,7 @@ const axios = require('axios');
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
+
 const COMMON_HEADERS = {
   'Accept': 'application/json, text/plain, */*',
   'Accept-Encoding': 'gzip, deflate, br',
@@ -12,8 +13,7 @@ const COMMON_HEADERS = {
   'Sec-Fetch-Dest': 'empty',
   'Sec-Fetch-Mode': 'cors',
   'Sec-Fetch-Site': 'cross-site',
-  }
-  
+};
 
 const savetube = {
   api: {
@@ -22,19 +22,14 @@ const savetube = {
     info: "/v2/info",
     download: "/download"
   },
-  headers: {
-    'accept': '*/*',
-    'content-type': 'application/json',
-    'origin': 'https://yt.savetube.me',
-    'referer': 'https://yt.savetube.me/',
-    'user-agent': 'Postify/1.0.0'
-  },
+
+  headers: COMMON_HEADERS,
+
   formats: ['144', '240', '360', '480', '720', '1080', 'mp3'],
+
   crypto: {
-    hexToBuffer: (hexString) => {
-      const matches = hexString.match(/.{1,2}/g);
-      return Buffer.from(matches.join(''), 'hex');
-    },
+    hexToBuffer: (hexString) => Buffer.from(hexString.match(/.{1,2}/g).join(''), 'hex'),
+
     decrypt: async (enc) => {
       try {
         const secretKey = 'C5D58EF67A7584E4A29F6C35BBC4EB12';
@@ -51,6 +46,7 @@ const savetube = {
       }
     }
   },
+
   isUrl: (str) => {
     try {
       new URL(str);
@@ -59,6 +55,7 @@ const savetube = {
       return false;
     }
   },
+
   youtube: (url) => {
     if (!url) return null;
     const patterns = [
@@ -69,10 +66,12 @@ const savetube = {
       /youtu\.be\/([a-zA-Z0-9_-]{11})/
     ];
     for (let pattern of patterns) {
-      if (pattern.test(url)) return url.match(pattern)[1];
+      const match = url.match(pattern);
+      if (match) return match[1];
     }
     return null;
   },
+
   request: async (endpoint, data = {}, method = 'post') => {
     try {
       const { data: response } = await axios({
@@ -87,36 +86,50 @@ const savetube = {
       return { status: false, code: error.response?.status || 500, error: error.message };
     }
   },
-  getCDN: async () => {  
-    const config = {
-    method: 'get',
-    url: 'https://media.savetube.me/api/random-cdn',
-    headers: COMMON_HEADERS,
-  };
-    const response = await axios.get(config);
-    return { status: true, code: 200, data: response.data.cdn };
+
+  getCDN: async () => {
+    try {
+      const response = await axios({
+        method: 'get',
+        url: 'https://media.savetube.me/api/random-cdn',
+        headers: COMMON_HEADERS,
+      });
+      return { status: true, code: 200, data: response.data.cdn };
+    } catch (error) {
+      return { status: false, code: error.response?.status || 500, error: error.message };
+    }
   },
+
   download: async (link, format) => {
     if (!link) return { status: false, code: 400, error: "Provide a YouTube link" };
-    if (!savetube.isUrl(link)) return { status: false, code: 400, error: "Not a valid YouTube Link." };
-    if (!format || !savetube.formats.includes(format)) return { status: false, code: 400, error: "Invalid format.", available_fmt: savetube.formats };
+    if (!savetube.isUrl(link)) return { status: false, code: 400, error: "Not a valid YouTube link." };
+    if (!format || !savetube.formats.includes(format)) {
+      return { status: false, code: 400, error: "Invalid format.", available_fmt: savetube.formats };
+    }
 
     const id = savetube.youtube(link);
-    if (!id) return { status: false, code: 400, error: "Tidak dapat mengekstrak ID video." };
+    if (!id) return { status: false, code: 400, error: "Cannot extract video ID." };
 
     try {
       const cdnx = await savetube.getCDN();
       if (!cdnx.status) return cdnx;
       const cdn = cdnx.data;
-      const result = await savetube.request(`https://${cdn}${savetube.api.info}`, { url: `https://www.youtube.com/watch?v=${id}` });
+
+      const result = await savetube.request(`https://${cdn}${savetube.api.info}`, {
+        url: `https://www.youtube.com/watch?v=${id}`
+      });
+
       if (!result.status) return result;
+
       const decrypted = await savetube.crypto.decrypt(result.data.data);
+
       const dl = await savetube.request(`https://${cdn}${savetube.api.download}`, {
         id,
         downloadType: format === 'mp3' ? 'audio' : 'video',
         quality: format,
         key: decrypted.key
       });
+
       return {
         status: true,
         code: 200,
@@ -139,6 +152,4 @@ const savetube = {
   }
 };
 
-
-
-  module.exports = { savetube }
+module.exports = { savetube };
