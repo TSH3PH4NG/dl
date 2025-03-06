@@ -1,7 +1,6 @@
+/* © Tshepang && Olduser*/
 const axios = require('axios');
 const crypto = require('crypto');
-const fs = require('fs');
-const path = require('path');
 
 const COMMON_HEADERS = {
   'Accept': 'application/json, text/plain, */*',
@@ -15,141 +14,112 @@ const COMMON_HEADERS = {
   'Sec-Fetch-Site': 'cross-site',
 };
 
-const savetube = {
-  api: {
-    base: "https://media.savetube.me/api",
-    cdn: "/random-cdn",
-    info: "/v2/info",
-    download: "/download"
-  },
+// Fetch CDN data
+async function getCDN() {
+  const response = await axios.get('https://media.savetube.me/api/random-cdn', { headers: COMMON_HEADERS });
+  return response.data.cdn;
+}
 
-  headers: COMMON_HEADERS,
+// Decrypt data using AES-128-CBC
+async function decrypt(datam) {
+  try {
+    const secretKey = 'C5D58EF67A7584E4A29F6C35BBC4EB12';
+    const data = Buffer.from(datam, 'base64');
+    const iv = data.slice(0, 16);
+    const content = data.slice(16);
+    const key = Buffer.from(await secretKey.match(/.{1,2}/g).join(''), 'hex');
+    const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    let decrypted = decipher.update(content);
+    decrypted = Buffer.concat([decrypted, decipher.final()]);
+    return JSON.parse(decrypted.toString());
+  } catch (error) {
+    throw new Error(error.message);
+  }
+}
 
-  formats: ['144', '240', '360', '480', '720', '1080', 'mp3'],
 
-  crypto: {
-    hexToBuffer: (hexString) => Buffer.from(hexString.match(/.{1,2}/g).join(''), 'hex'),
+async function getData(link) {
+  const cdn = await getCDN();
+  try {
+    const response = await axios.post(`https://${cdn}/v2/info`, { url: link }, { headers: { ...COMMON_HEADERS, 'Content-Type': 'application/json' } });
+    return await decrypt(response.data.data);
+  } catch (error) {
+    console.error('Error fetching data:', error);
+    return error;
+  }
+}
 
-    decrypt: async (enc) => {
-      try {
-        const secretKey = 'C5D58EF67A7584E4A29F6C35BBC4EB12';
-        const data = Buffer.from(enc, 'base64');
-        const iv = data.slice(0, 16);
-        const content = data.slice(16);
-        const key = savetube.crypto.hexToBuffer(secretKey);
-        const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
-        let decrypted = decipher.update(content);
-        decrypted = Buffer.concat([decrypted, decipher.final()]);
-        return JSON.parse(decrypted.toString());
-      } catch (error) {
-        throw new Error(error.message);
-      }
-    }
-  },
 
-  isUrl: (str) => {
+async function downloadAud(cdn, key, aud) {
+  const results = {};
+  for (const format of aud) {
+    const q = format.quality;
     try {
-      new URL(str);
-      return true;
-    } catch (_) {
-      return false;
-    }
-  },
-
-  youtube: (url) => {
-    if (!url) return null;
-    const patterns = [
-      /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
-      /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/,
-      /youtu\.be\/([a-zA-Z0-9_-]{11})/
-    ];
-    for (let pattern of patterns) {
-      const match = url.match(pattern);
-      if (match) return match[1];
-    }
-    return null;
-  },
-
-  request: async (endpoint, data = {}, method = 'post') => {
-    try {
-      const { data: response } = await axios({
-        method,
-        url: `${endpoint.startsWith('http') ? '' : savetube.api.base}${endpoint}`,
-        data: method === 'post' ? data : undefined,
-        params: method === 'get' ? data : undefined,
-        headers: COMMON_HEADERS,
-      });
-      return { status: true, code: 200, data: response };
+      const response = await axios.post(
+        `https://${cdn}/download`,
+        { downloadType: 'video', quality: q, key },
+        { headers: COMMON_HEADERS }
+      );
+      results[q] = response.data.data.downloadUrl;
     } catch (error) {
-      return { status: false, code: error.response?.status || 500, error: error.message };
-    }
-  },
-
-  getCDN: async () => {
-    try {
-      const response = await axios({
-        method: 'get',
-        url: 'https://media.savetube.me/api/random-cdn',
-        headers: COMMON_HEADERS,
-      });
-      return { status: true, code: 200, data: response.data.cdn };
-    } catch (error) {
-      return { status: false, code: error.response?.status || 500, error: error.message };
-    }
-  },
-
-  download: async (link, format) => {
-    if (!link) return { status: false, code: 400, error: "Provide a YouTube link" };
-    if (!savetube.isUrl(link)) return { status: false, code: 400, error: "Not a valid YouTube link." };
-    if (!format || !savetube.formats.includes(format)) {
-      return { status: false, code: 400, error: "Invalid format.", available_fmt: savetube.formats };
-    }
-
-    const id = savetube.youtube(link);
-    if (!id) return { status: false, code: 400, error: "Cannot extract video ID." };
-
-    try {
-      const cdnx = await savetube.getCDN();
-      if (!cdnx.status) return cdnx;
-      const cdn = cdnx.data;
-
-      const result = await savetube.request(`https://${cdn}${savetube.api.info}`, {
-        url: `https://www.youtube.com/watch?v=${id}`
-      });
-
-      if (!result.status) return result;
-
-      const decrypted = await savetube.crypto.decrypt(result.data.data);
-
-      const dl = await savetube.request(`https://${cdn}${savetube.api.download}`, {
-        id,
-        downloadType: format === 'mp3' ? 'audio' : 'video',
-        quality: format,
-        key: decrypted.key
-      });
-
-      return {
-        status: true,
-        code: 200,
-        result: {
-          title: decrypted.title || "Unknown",
-          type: format === 'mp3' ? 'audio' : 'video',
-          format,
-          thumbnail: decrypted.thumbnail || `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`,
-          download: dl.data.data.downloadUrl,
-          id,
-          key: decrypted.key,
-          duration: decrypted.duration,
-          quality: format,
-          downloaded: dl.data.data.downloaded || false
-        }
-      };
-    } catch (error) {
-      return { status: false, code: 500, error: error.message };
+      console.error('Error downloading audio:', error);
+      return error;
     }
   }
-};
+  return results;
+}
 
-module.exports = { savetube };
+
+async function downloadVid(cdn, key, quality = [
+  { height: 338, width: 640, quality: 360, label: '360p' },
+  { height: 676, width: 1280, quality: 720, label: '720p' },
+  { height: 1012, width: 1920, quality: 1080, label: '1080p' },
+]) {
+  const results = {};
+  for (const format of quality) {
+    const q = format.quality;
+    try {
+      const response = await axios.post(
+        `https://${cdn}/download`,
+        { downloadType: 'video', quality: q, key },
+        { headers: COMMON_HEADERS }
+      );
+      results[q] = response.data.data.downloadUrl;
+    } catch (error) {
+      console.error('Error downloading video:', error);
+      return error;
+    }
+  }
+  return results;
+}
+
+// Main function to download audio and video, and return the results
+async function savetube(url) {
+  try {
+    const response = await getData(url);
+    if (!response || response instanceof Error) throw new Error('Failed to fetch video data.');
+
+    const { vid, aud, key, thumbnail, title, duration, durationLabel } = response;
+    const cdn = await getCDN();
+
+    // Download audio and video
+    const audioLinks = await downloadAud(cdn, key, aud);
+    const videoLinks = await downloadVid(cdn, key, vid);
+
+    return {
+      title,
+      youtube_url: url,
+      thumbnail,
+      key,
+      duration,
+      duration_time: durationLabel,
+      audio: audioLinks,
+      video: videoLinks,
+    };
+  } catch (error) {
+    console.error('Error during download:', error);
+    return { error: 'Internal processing error' };
+  }
+}
+
+module.exports = savetube;
