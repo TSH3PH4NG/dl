@@ -29,16 +29,11 @@ app.get("/translate", async (req, res) => {
 
 
 app.get('/download', async (req, res) => {
-    const { url , quality , type } = req.query;
-    if (!url) return res.status(400).json({ error: "Missing URL parameter" });
-
-
-    const  options = type === "audio";
-    const videoQuality = quality || "mp3" ;
-    
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ error: "Missing URL parameter" });    
     
     try {
-        const data = await savetube.download(url,videoQuality);
+        const data = await savetube(url);
         return res.send(data);
         /*
         const videoStream = await axios({
