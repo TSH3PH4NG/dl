@@ -118,7 +118,7 @@ async function savetube(url) {
     };
   } catch (error) {
     console.error('Error during download:', error);
-    return { error: 'Internal processing error' };
+    return { error: `Internal processing error: ${error}` };
   }
 }
 
