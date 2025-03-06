@@ -97,7 +97,7 @@ async function downloadVid(cdn, key, quality = [
 async function savetube(url) {
   try {
     const response = await getData(url);
-    if (!response || response instanceof Error) throw new Error('Failed to fetch video data.');
+    if (!response || response instanceof Error) throw new Error(response);
 
     const { key, thumbnail, title, duration, durationLabel, audio_formats  } = response;
     const cdn = await getCDN();
@@ -118,7 +118,7 @@ async function savetube(url) {
     };
   } catch (error) {
     console.error('Error during download:', error);
-    return { error: `Internal processing error: ${error.message}` };
+    return { error: `Internal processing error: ${error}` };
   }
 }
 
