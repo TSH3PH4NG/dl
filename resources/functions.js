@@ -9,7 +9,7 @@ const COMMON_HEADERS = {
   'Accept-Language': 'en-IN,en-GB;q=0.9,en-US;q=0.8,en;q=0.7',
   'Origin': 'https://yt.savetube.me',
   'Referer': 'https://yt.savetube.me/',
-  'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
+  'User-Agent': 'Mozilla/5.0 (Android 12; Mobile; rv:135.0) Gecko/135.0 Firefox/135.0',
   'Sec-Fetch-Dest': 'empty',
   'Sec-Fetch-Mode': 'cors',
   'Sec-Fetch-Site': 'cross-site',
