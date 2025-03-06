@@ -1,4 +1,5 @@
 /* © Tshepang && Olduser*/
+
 const axios = require('axios');
 const crypto = require('crypto');
 
@@ -49,7 +50,6 @@ async function getData(link) {
   }
 }
 
-
 async function downloadAud(cdn, key, aud) {
   const results = {};
   for (const format of aud) {
@@ -57,7 +57,7 @@ async function downloadAud(cdn, key, aud) {
     try {
       const response = await axios.post(
         `https://${cdn}/download`,
-        { downloadType: 'video', quality: q, key },
+        { downloadType: 'audio', quality: q, key },
         { headers: COMMON_HEADERS }
       );
       results[q] = response.data.data.downloadUrl;
@@ -99,12 +99,12 @@ async function savetube(url) {
     const response = await getData(url);
     if (!response || response instanceof Error) throw new Error('Failed to fetch video data.');
 
-    const { vid, aud, key, thumbnail, title, duration, durationLabel } = response;
+    const { key, thumbnail, title, duration, durationLabel, audio_formats  } = response;
     const cdn = await getCDN();
 
-    // Download audio and video
-    const audioLinks = await downloadAud(cdn, key, aud);
-    const videoLinks = await downloadVid(cdn, key, vid);
+    // Ensure audio_formats is an array before passing it
+    const audioLinks = await downloadAud(cdn, key, audio_formats ) 
+    const videoLinks = await downloadVid(cdn, key);
 
     return {
       title,
@@ -118,7 +118,7 @@ async function savetube(url) {
     };
   } catch (error) {
     console.error('Error during download:', error);
-    return { error: `Internal processing error: ${error}` };
+    return { error: `Internal processing error: ${error.message}` };
   }
 }
 
