@@ -73,7 +73,6 @@ async function downloadAud(cdn, key, aud) {
 async function downloadVid(cdn, key, quality = [
   { height: 338, width: 640, quality: 360, label: '360p' },
   { height: 676, width: 1280, quality: 720, label: '720p' },
-  { height: 1012, width: 1920, quality: 1080, label: '1080p' },
 ]) {
   const results = {};
   for (const format of quality) {
