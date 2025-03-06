@@ -96,7 +96,7 @@ async function downloadVid(cdn, key, quality = [
 // Main function to download audio and video, and return the results
 async function savetube(url) {
   try {
-    const response = await getData(`https://youtu.be/kHdmFBowDRI?si=WVw6lCFx41kTXWfl`);
+    const response = await getData(url);
     if (!response || response instanceof Error) throw new Error(response);
 
     const { key, thumbnail, title, duration, durationLabel, audio_formats  } = response;
