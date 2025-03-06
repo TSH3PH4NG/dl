@@ -122,4 +122,4 @@ async function savetube(url) {
   }
 }
 
-module.exports = savetube;
+module.exports = { savetube };
