@@ -53,7 +53,7 @@ async function getData(link) {
 async function downloadAud(cdn, key, aud) {
   const results = {};
   for (const format of aud) {
-    const q = format.quality;
+    const q = 320; /*format.quality;*/
     try {
       const response = await axios.post(
         `https://${cdn}/download`,
